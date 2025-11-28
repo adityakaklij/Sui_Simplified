@@ -1,8 +1,10 @@
-
 import { SuiJsonRpcClient } from '@mysten/sui/jsonRpc';
 
+// Reference file - example transaction data structure
+// This file is kept for reference purposes
 
-const test = async () => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const test = async () => {
     // create a client connected to devnet
     const client = new SuiJsonRpcClient({
       url: 'https://fullnode.mainnet.sui.io:443',
@@ -21,8 +23,8 @@ const test = async () => {
     console.log(res);
   };
 
-
-let exampleOutput = {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const exampleOutput = {
     "digest": "BNZJ3RWCNYCDB8vwhEMn3ihifZNebCeid9GyEG2quWfz",
     "transaction": {
         "data": {

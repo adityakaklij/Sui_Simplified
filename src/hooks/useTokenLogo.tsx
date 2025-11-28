@@ -33,7 +33,7 @@ export function useTokenLogo(coinName?: string): {
           setLogoUrl(apiLogo);
         }
       })
-      .catch((error) => {
+      .catch(() => {
         // Keep static logo on error, don't log to avoid console spam
         console.debug(`Logo fetch failed for ${coinName}, using static logo`);
       });

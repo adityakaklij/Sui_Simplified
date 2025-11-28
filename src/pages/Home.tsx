@@ -11,7 +11,7 @@ interface HomeProps {
   network: string;
 }
 
-const Home: React.FC<HomeProps> = ({ network }) => {
+const Home: React.FC<HomeProps> = () => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [viewMode, setViewMode] = React.useState<ViewMode>('simple');

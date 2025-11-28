@@ -7,7 +7,7 @@ import type {
   ObjectChange,
   TransactionEvent,
   TransactionInput,
-  Effects,
+  TransactionOperation,
 } from '../types/transaction';
 
 export class TransactionParser {
@@ -303,7 +303,7 @@ export class TransactionParser {
     });
   }
 
-  private static formatEventDescription(eventName: string, data: any): string {
+  private static formatEventDescription(eventName: string, _data: any): string {
     // Generate user-friendly descriptions based on event type
     if (eventName.includes('Order')) {
       return `Order ${eventName.replace(/([A-Z])/g, ' $1').trim()}`;
@@ -331,11 +331,6 @@ export class TransactionParser {
     
     const parts = coinType.split('::');
     return parts[parts.length - 1];
-  }
-
-  private static formatObjectType(objectType: string): string {
-    if (!objectType) return 'Unknown';
-    return objectType;
   }
 
   private static parseObjectTypeDetails(objectType: string): {

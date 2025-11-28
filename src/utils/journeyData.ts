@@ -1,5 +1,4 @@
 import type { SimplifiedTransaction, DetailedTransaction } from '../types/transaction';
-import { getTokenIcon } from './tokenLogos';
 
 export type JourneyStageData = {
   stage: number;
@@ -26,10 +25,6 @@ export class JourneyDataExtractor {
 
     // Get balance changes for visual display
     const balanceChanges = transaction.balanceChanges || [];
-    const totalBalanceChange = balanceChanges.reduce((sum, change) => {
-      const amount = parseFloat(change.amount);
-      return sum + (change.isPositive ? amount : -amount);
-    }, 0);
 
     // Get coin types involved
     const coinTypes = [...new Set(balanceChanges.map(c => c.coinType))];
@@ -51,7 +46,7 @@ export class JourneyDataExtractor {
 
     // Stage 2: Action Taken
     let stage2Description = transaction.summary.description;
-    let stage2ChildFriendly = this.getChildFriendlyAction(category, transaction.summary.mainAction, detailedTx);
+    let stage2ChildFriendly = this.getChildFriendlyAction(category, transaction.summary.mainAction);
     
     const stage2: JourneyStageData = {
       stage: 2,
@@ -161,8 +156,7 @@ export class JourneyDataExtractor {
 
   private static getChildFriendlyAction(
     category: string,
-    mainAction: string,
-    detailedTx: DetailedTransaction | null
+    mainAction: string
   ): string {
     switch (category) {
       case 'defi':
