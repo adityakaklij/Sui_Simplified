@@ -24,8 +24,55 @@ const CACHE_DURATION = 60 * 60 * 1000;
 const COINGECKO_API_KEY = 'CG-szxrubZPAKKwYnQXtkUuq57x';
 const COINGECKO_BASE_URL = 'https://api.coingecko.com/api/v3';
 
-// In-memory cache
+// Maximum cache size to prevent memory bloat
+const MAX_CACHE_SIZE = 50;
+const MAX_LOCALSTORAGE_ENTRIES = 20;
+
+// In-memory cache with LRU-like behavior
 const logoCache = new Map<string, CachedLogoData>();
+
+/**
+ * Enforce cache size limit using LRU eviction
+ */
+function enforceCacheLimit(): void {
+  if (logoCache.size > MAX_CACHE_SIZE) {
+    // Remove oldest entries (first inserted)
+    const keysToDelete = Array.from(logoCache.keys()).slice(0, logoCache.size - MAX_CACHE_SIZE);
+    keysToDelete.forEach(key => logoCache.delete(key));
+  }
+}
+
+/**
+ * Enforce localStorage cache limit
+ */
+function enforceLocalStorageLimit(): void {
+  try {
+    const cacheKeys: { key: string; timestamp: number }[] = [];
+    
+    // Find all coingecko cache entries
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('coingecko_logo_')) {
+        try {
+          const data = JSON.parse(localStorage.getItem(key) || '{}');
+          cacheKeys.push({ key, timestamp: data.timestamp || 0 });
+        } catch {
+          // Invalid entry, mark for removal
+          cacheKeys.push({ key, timestamp: 0 });
+        }
+      }
+    }
+    
+    // If over limit, remove oldest entries
+    if (cacheKeys.length > MAX_LOCALSTORAGE_ENTRIES) {
+      cacheKeys.sort((a, b) => a.timestamp - b.timestamp);
+      const toRemove = cacheKeys.slice(0, cacheKeys.length - MAX_LOCALSTORAGE_ENTRIES);
+      toRemove.forEach(({ key }) => localStorage.removeItem(key));
+    }
+  } catch (e) {
+    console.warn('Failed to enforce localStorage limit:', e);
+  }
+}
 
 // Symbol to CoinGecko ID mapping
 const SYMBOL_TO_ID: Record<string, string> = {
@@ -72,14 +119,31 @@ function setCachedLogo(symbol: string, data: CachedLogoData): void {
   if (!coinId) return;
 
   logoCache.set(coinId, data);
+  
+  // Enforce memory cache limit
+  enforceCacheLimit();
 
   // Also cache in localStorage for persistence across page reloads
   try {
     const cacheKey = `coingecko_logo_${coinId}`;
     localStorage.setItem(cacheKey, JSON.stringify(data));
+    
+    // Enforce localStorage limit
+    enforceLocalStorageLimit();
   } catch (e) {
-    // localStorage might be disabled, ignore
-    console.warn('Failed to cache logo in localStorage:', e);
+    // localStorage might be full or disabled
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      // Clear old entries and try again
+      enforceLocalStorageLimit();
+      try {
+        const cacheKey = `coingecko_logo_${coinId}`;
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      } catch {
+        console.warn('localStorage quota exceeded, cache disabled');
+      }
+    } else {
+      console.warn('Failed to cache logo in localStorage:', e);
+    }
   }
 }
 

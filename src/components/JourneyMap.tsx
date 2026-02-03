@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import type { SimplifiedTransaction, DetailedTransaction, ViewMode } from '../types/transaction';
 import { JourneyDataExtractor } from '../utils/journeyData';
 
@@ -10,28 +10,67 @@ interface JourneyMapProps {
 const JourneyMap: React.FC<JourneyMapProps> = ({ transaction }) => {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [animatedStages, setAnimatedStages] = useState<Set<number>>(new Set());
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animationTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  
   const isSuccess = transaction.status === 'success';
-  const stages = JourneyDataExtractor.extractStages(transaction);
+  
+  // Memoize stages to prevent unnecessary recalculations and effect triggers
+  const stages = useMemo(
+    () => JourneyDataExtractor.extractStages(transaction),
+    [transaction.digest] // Only recalculate when transaction changes
+  );
+  
   const balanceChanges = transaction.balanceChanges || [];
 
-  // Animate stages sequentially
+  // Animate stages sequentially with proper cleanup
   useEffect(() => {
+    // Reset animation state for new transaction
+    setAnimatedStages(new Set());
+    
+    // Clear any existing animation timeouts
+    animationTimeoutsRef.current.forEach(clearTimeout);
+    animationTimeoutsRef.current = [];
+    
+    // Schedule new animations
     stages.forEach((stage, index) => {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setAnimatedStages(prev => new Set(prev).add(stage.stage));
       }, index * 300);
+      animationTimeoutsRef.current.push(timeoutId);
     });
-  }, [stages]);
+    
+    // Cleanup on unmount or when transaction changes
+    return () => {
+      animationTimeoutsRef.current.forEach(clearTimeout);
+      animationTimeoutsRef.current = [];
+    };
+  }, [transaction.digest, stages]);
 
-  const copyToClipboard = async (text: string, label: string = 'Copied!') => {
+  const copyToClipboard = useCallback(async (text: string, label: string = 'Copied!') => {
     try {
       await navigator.clipboard.writeText(text);
       setCopyFeedback(label);
-      setTimeout(() => setCopyFeedback(null), 2000);
+      
+      // Clear previous timeout if any
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      
+      copyTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  };
+  }, []);
+  
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const shortenAddr = (addr: string) => {
     if (!addr || addr === 'Unknown') return addr;

@@ -52,7 +52,7 @@ const About: React.FC<AboutProps> = () => {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl"></span>
+                      <span className="material-symbols-outlined text-2xl text-comic-blue">visibility</span>
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-white mb-1">Simple View</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -62,7 +62,7 @@ const About: React.FC<AboutProps> = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl"></span>
+                      <span className="material-symbols-outlined text-2xl text-comic-green">code</span>
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-white mb-1">Developer View</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -71,10 +71,20 @@ const About: React.FC<AboutProps> = () => {
                         </p>
                       </div>
                     </div>
+                    <div className="flex items-start gap-3">
+                      <span className="material-symbols-outlined text-2xl text-purple-500">terminal</span>
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-1">Contract Interaction</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Load any Sui smart contract and call its read functions directly from your browser 
+                          without writing code.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl"></span>
+                      <span className="material-symbols-outlined text-2xl text-comic-yellow">map</span>
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-white mb-1">Visual Journey Map</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -84,7 +94,7 @@ const About: React.FC<AboutProps> = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <span className="text-2xl"></span>
+                      <span className="material-symbols-outlined text-2xl text-comic-red">public</span>
                       <div>
                         <h3 className="font-bold text-gray-900 dark:text-white mb-1">Multi-Network Support</h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -93,6 +103,57 @@ const About: React.FC<AboutProps> = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              </section>
+
+              {/* Contract Interaction Feature */}
+              <section className="bg-white dark:bg-gray-900 rounded-xl border-4 border-black dark:border-white shadow-comic dark:shadow-comic-dark p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="material-symbols-outlined text-3xl text-purple-500">deployed_code</span>
+                  <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase">
+                    Contract Interaction
+                  </h2>
+                </div>
+                <div className="space-y-4 text-gray-700 dark:text-gray-300">
+                  <p>
+                    Our Contract Interaction feature allows you to explore and interact with any Sui smart contract 
+                    directly from your browser. Simply paste a contract package ID to discover all available 
+                    read functions and call them with custom arguments.
+                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-2 border-gray-200 dark:border-gray-700">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-3">What you can do:</h3>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-comic-green text-lg">check_circle</span>
+                        <span><strong>Load Contracts:</strong> Enter any Sui package ID to fetch and analyze the contract's modules</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-comic-green text-lg">check_circle</span>
+                        <span><strong>Browse Functions:</strong> View all public read functions with their parameter types and return values</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-comic-green text-lg">check_circle</span>
+                        <span><strong>Call Functions:</strong> Execute read-only functions with custom arguments and see results instantly</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-comic-green text-lg">check_circle</span>
+                        <span><strong>No Wallet Required:</strong> Read functions don't require signing, so you can explore without connecting a wallet</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    This is perfect for developers testing their contracts, users verifying contract state, 
+                    or anyone curious about how Sui smart contracts work under the hood.
+                  </p>
+                </div>
+                <div className="mt-6">
+                  <Link
+                    to="/interact"
+                    className="inline-flex items-center gap-2 bg-purple-500 text-white px-6 py-3 rounded-lg border-4 border-black font-bold uppercase hover:bg-purple-600 transition-colors shadow-comic"
+                  >
+                    <span className="material-symbols-outlined">terminal</span>
+                    Try Contract Interaction
+                  </Link>
                 </div>
               </section>
 

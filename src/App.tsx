@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
+import Interact from './pages/Interact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import { suiService, type Network } from './services/suiService';
@@ -30,6 +31,7 @@ function App() {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home network={network} />} />
+          <Route path="/interact" element={<Interact network={network} />} />
           <Route path="/about" element={<About network={network} onNetworkChange={setNetwork} />} />
           <Route path="/privacy" element={<PrivacyPolicy network={network} onNetworkChange={setNetwork} />} />
           <Route path="/terms" element={<TermsOfService network={network} onNetworkChange={setNetwork} />} />

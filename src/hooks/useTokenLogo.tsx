@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getTokenLogo, getTokenLogoAsync, getTokenIcon } from '../utils/tokenLogos';
 
 /**
@@ -12,8 +12,14 @@ export function useTokenLogo(coinName?: string): {
 } {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Track if component is mounted to avoid state updates after unmount
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    // Set mounted flag
+    isMountedRef.current = true;
+    
     if (!coinName) {
       setLogoUrl(null);
       setIsLoading(false);
@@ -28,15 +34,22 @@ export function useTokenLogo(coinName?: string): {
     // Then try to fetch from CoinGecko API in background
     getTokenLogoAsync(coinName)
       .then(apiLogo => {
-        // Update with API logo if different and valid
-        if (apiLogo && apiLogo !== staticLogo) {
+        // Only update state if component is still mounted
+        if (isMountedRef.current && apiLogo && apiLogo !== staticLogo) {
           setLogoUrl(apiLogo);
         }
       })
       .catch(() => {
-        // Keep static logo on error, don't log to avoid console spam
-        console.debug(`Logo fetch failed for ${coinName}, using static logo`);
+        // Keep static logo on error, component might be unmounted
+        if (isMountedRef.current) {
+          console.debug(`Logo fetch failed for ${coinName}, using static logo`);
+        }
       });
+    
+    // Cleanup: mark as unmounted to prevent state updates
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [coinName]);
 
   return {

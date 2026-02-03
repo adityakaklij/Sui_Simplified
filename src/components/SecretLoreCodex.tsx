@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import type { SimplifiedTransaction, DetailedTransaction, ViewMode } from '../types/transaction';
 import { TransactionParser } from '../utils/transactionParser';
 import { useTokenLogo } from '../hooks/useTokenLogo';
@@ -13,28 +13,63 @@ const SecretLoreCodex: React.FC<SecretLoreCodexProps> = ({ transaction, viewMode
   const [isOpen, setIsOpen] = useState(true);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const detailedTx = viewMode === 'detailed' ? transaction as DetailedTransaction : null;
-  const developerDetailsRef = React.useRef<HTMLDivElement>(null);
+  const developerDetailsRef = useRef<HTMLDivElement>(null);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const copyToClipboard = async (text: string, label: string = 'Copied!') => {
+  const copyToClipboard = useCallback(async (text: string, label: string = 'Copied!') => {
     try {
       await navigator.clipboard.writeText(text);
       setCopyFeedback(label);
-      setTimeout(() => setCopyFeedback(null), 2000);
+      
+      // Clear previous timeout if any
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      
+      copyTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
       setCopyFeedback('Copy failed');
-      setTimeout(() => setCopyFeedback(null), 2000);
+      
+      // Clear previous timeout if any
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+      
+      copyTimeoutRef.current = setTimeout(() => setCopyFeedback(null), 2000);
     }
-  };
+  }, []);
 
   // Scroll to developer details when view mode changes to detailed
-  React.useEffect(() => {
+  useEffect(() => {
     if (viewMode === 'detailed' && developerDetailsRef.current) {
-      setTimeout(() => {
+      // Clear previous scroll timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      scrollTimeoutRef.current = setTimeout(() => {
         developerDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     }
+    
+    // Cleanup
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, [viewMode]);
+  
+  // Cleanup copy timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="mt-8 relative" ref={viewMode === 'detailed' ? developerDetailsRef : null}>

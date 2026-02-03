@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export type Network = 'mainnet' | 'testnet' | 'devnet';
 
@@ -8,20 +8,38 @@ interface HeaderProps {
   onNetworkChange: (network: Network) => void;
 }
 
+// Navigation items configuration
+const navItems = [
+  { path: '/', label: 'Explorer', icon: 'search' },
+  { path: '/interact', label: 'Interact', icon: 'code' },
+  { path: '/about', label: 'About', icon: 'info' },
+];
+
 const Header: React.FC<HeaderProps> = ({ network, onNetworkChange }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   const networks: { value: Network; label: string; color: string }[] = [
     { value: 'mainnet', label: 'Mainnet', color: 'text-green-600' },
@@ -30,6 +48,11 @@ const Header: React.FC<HeaderProps> = ({ network, onNetworkChange }) => {
   ];
 
   const currentNetwork = networks.find(n => n.value === network);
+
+  const isActiveRoute = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <header className="sticky top-0 z-30 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm border-b-4 border-black dark:border-white">
@@ -43,10 +66,26 @@ const Header: React.FC<HeaderProps> = ({ network, onNetworkChange }) => {
             </div>
             <Link to="/" className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-wider hover:opacity-80 transition-opacity">Sui Simplified</Link>
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/about" className="text-sm font-bold text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary">About</Link>
-            {/* <a className="text-sm font-bold text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary" href="https://docs.sui.io" target="_blank" rel="noopener noreferrer">Docs</a> */}
-            
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all ${
+                  isActiveRoute(item.path)
+                    ? 'bg-comic-blue text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-3">
             {/* Network Dropdown */}
             <div className="relative" ref={dropdownRef}>
               <button
@@ -87,8 +126,44 @@ const Header: React.FC<HeaderProps> = ({ network, onNetworkChange }) => {
                 </div>
               )}
             </div>
+            
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label="Toggle menu"
+            >
+              <span className="material-symbols-outlined text-2xl">
+                {isMobileMenuOpen ? 'close' : 'menu'}
+              </span>
+            </button>
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div 
+            ref={mobileMenuRef}
+            className="md:hidden pb-4 border-t-2 border-gray-200 dark:border-gray-700 mt-2"
+          >
+            <nav className="flex flex-col gap-1 pt-3">
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg transition-all ${
+                    isActiveRoute(item.path)
+                      ? 'bg-comic-blue text-white'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

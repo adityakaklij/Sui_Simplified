@@ -44,6 +44,8 @@ export class TransactionParser {
     const effects = rawTx.effects;
     const transactions = rawTx.transaction?.data?.transaction?.transactions || [];
     
+    // NOTE: rawData is intentionally NOT stored to prevent memory bloat
+    // Large transactions can be several MB and storing them causes browser memory issues
     return {
       ...simplified,
       inputs: this.parseInputs(rawTx.transaction?.data?.transaction?.inputs || []),
@@ -58,7 +60,7 @@ export class TransactionParser {
         totalGasCost: simplified.gasUsed.total,
         dependencies: effects?.dependencies || [],
       },
-      rawData: rawTx,
+      // rawData removed - was causing memory bloat with large transactions
     };
   }
 
